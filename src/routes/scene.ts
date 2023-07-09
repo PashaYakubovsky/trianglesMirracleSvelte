@@ -43,8 +43,6 @@ class MainScene {
 	private camera: THREE.PerspectiveCamera;
 	private renderer: THREE.WebGLRenderer;
 	private mouse = new THREE.Vector2();
-	private raycaster = new THREE.Raycaster();
-	private animatedContinue = false;
 	private particleSystem: THREE.Points | null = null;
 	private textureLoader = new THREE.TextureLoader();
 	private conesMesh: THREE.Mesh[] = [];
@@ -61,16 +59,21 @@ class MainScene {
 
 		this.renderer = new THREE.WebGLRenderer({
 			canvas: el,
-			antialias: true,
 			alpha: true,
-			powerPreference: 'high-performance'
+			powerPreference: 'high-performance',
+			// optimization
+			antialias: false,
+			precision: 'highp',
+			stencil: false,
+			preserveDrawingBuffer: false,
+			depth: false,
+			logarithmicDepthBuffer: false
 		});
+
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 		this.camera.position.z = 50;
-
-		this.raycaster = new THREE.Raycaster();
 
 		window.addEventListener('resize', () => this.resize());
 		window.addEventListener('mousemove', (event) => this.onMouseMove(event));

@@ -24,7 +24,6 @@
 		cones3d = scene.addCones(matcapTexure, countTriangles);
 	}
 
-	// run callback when cones3d changes
 	$: if (cones3d.length > 0 && sectionElements.length > 0) {
 		for (const cone of cones3d) {
 			gsap.to(lights, {
@@ -93,36 +92,51 @@
 					x: 10,
 					y: 10,
 					z: 10,
-					ease: 'power3.inOut',
-					scrollTrigger: {
-						trigger: sectionElements[1],
-						start: 'top top',
-						end: 'bottom bottom',
-						scrub: true
-					}
+					ease: 'power3.inOut'
 				},
 				'='
 			);
 
 			const material = cone.material as MeshPhysicalMaterial;
 
-			gsap.fromTo(
+			tl.fromTo(
 				material,
-				{ roughness: 0, metalness: 0 },
+				{ roughness: 1, metalness: 0 },
 				{
-					duration: 0.1,
-					roughness: 1,
+					duration: 1,
+					roughness: 0,
 					metalness: 1,
-					normalScale: { x: 1, y: 1 },
-					ease: 'power3.inOut',
-					scrollTrigger: {
-						trigger: sectionElements[3],
-						start: 'top top',
-						end: 'bottom bottom',
-						scrub: true
-					}
-				}
+
+					ease: 'power3.inOut'
+				},
+				'>10%'
 			);
+
+			tl.to(
+				material,
+				{
+					duration: 1,
+					roughness: 1,
+					metalness: 0,
+					normalScale: { x: 0, y: 0 },
+					ease: 'power3.inOut'
+				},
+				'>90%'
+			);
+
+			gsap.to(cone.scale, {
+				duration: 1,
+				x: 50,
+				y: 50,
+				z: 10,
+				ease: 'power3.inOut',
+				scrollTrigger: {
+					trigger: sectionElements[3],
+					start: 'top top',
+					end: 'bottom bottom',
+					scrub: true
+				}
+			});
 		}
 	}
 
