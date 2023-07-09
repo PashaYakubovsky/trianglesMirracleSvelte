@@ -147,7 +147,7 @@ class MainScene {
 			Math.sin(this.mouse.x * this.mouse.y) + this.camera.position.z
 		);
 
-		const newRotation = new THREE.Vector3(
+		const newRotation = new THREE.Quaternion(
 			this.mouse.y * 0.1,
 			this.mouse.x * 0.1,
 			Math.sin(this.mouse.x * this.mouse.y)
