@@ -85,18 +85,6 @@
 				'='
 			);
 
-			tl.to(
-				cone.scale,
-				{
-					duration: 0.1,
-					x: 10,
-					y: 10,
-					z: 10,
-					ease: 'power3.inOut'
-				},
-				'='
-			);
-
 			const material = cone.material as MeshPhysicalMaterial;
 
 			tl.fromTo(
