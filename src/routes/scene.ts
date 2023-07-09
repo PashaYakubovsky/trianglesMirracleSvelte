@@ -34,15 +34,20 @@ const fragmentShader = `
 	}
 `;
 
+// get random number from range function
+const getRandomBetween = (min: number, max: number) =>
+	Math.floor(Math.random() * (max - min + 1) + min);
+
 class MainScene {
 	private scene: THREE.Scene;
 	private camera: THREE.PerspectiveCamera;
 	private renderer: THREE.WebGLRenderer;
-	private triangles: THREE.Mesh[] = [];
 	private mouse = new THREE.Vector2();
 	private raycaster = new THREE.Raycaster();
 	private animatedContinue = false;
 	private particleSystem: THREE.Points | null = null;
+	private textureLoader = new THREE.TextureLoader();
+	private conesMesh: THREE.Mesh[] = [];
 
 	constructor(el: HTMLCanvasElement) {
 		this.scene = new THREE.Scene();
@@ -62,50 +67,107 @@ class MainScene {
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-		this.camera.position.z = 5;
+		this.camera.position.z = 50;
 
 		this.raycaster = new THREE.Raycaster();
 
 		window.addEventListener('resize', () => this.resize());
 		window.addEventListener('mousemove', (event) => this.onMouseMove(event));
 
+		this.addLights();
+
 		this.animate();
+	}
+
+	public addLights() {
+		const ambientLight = new THREE.AmbientLight(0x404040);
+		ambientLight.intensity = 0.2;
+
+		const directionalLight = new THREE.DirectionalLight(0xffffff);
+		directionalLight.position.set(0, 1, 1).normalize();
+		directionalLight.intensity = 0.2;
+
+		const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
+		pointLight.position.set(0, 0, 0);
+		pointLight.intensity = 0.2;
+		this.scene.add(pointLight, directionalLight, ambientLight);
+	}
+
+	public addCones(textureSrc: string, numberOfCones: number) {
+		if (this.conesMesh.length > 0) {
+			this.conesMesh.forEach((cone) => {
+				this.scene.remove(cone);
+			});
+			this.conesMesh = [];
+		}
+
+		const geometry = new THREE.ConeGeometry(1, 1, 3);
+
+		const texture = this.textureLoader.load(textureSrc);
+
+		texture.mapping = THREE.EquirectangularReflectionMapping;
+		texture.colorSpace = THREE.SRGBColorSpace;
+
+		const material = new THREE.MeshPhysicalMaterial({
+			envMap: texture,
+			roughness: 0.5,
+			metalness: 0.5,
+			reflectivity: 0.5
+		});
+
+		for (let i = 0; i < numberOfCones; i++) {
+			const cone = new THREE.Mesh(geometry, material);
+
+			cone.position.set(
+				getRandomBetween(-100, 100),
+				getRandomBetween(-100, 100),
+				getRandomBetween(-100, 100)
+			);
+			this.conesMesh.push(cone);
+			this.scene.add(cone);
+		}
+
+		return this.conesMesh;
 	}
 
 	public onMouseMove(event: MouseEvent) {
 		this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 		this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-		this.raycaster.setFromCamera(this.mouse, this.camera);
+		// animated camera on mouse move
+		const newPosition = new THREE.Vector3(
+			this.mouse.x * 20,
+			this.mouse.y * 20,
+			Math.sin(this.mouse.x * this.mouse.y) + this.camera.position.z
+		);
 
-		const intersects = this.raycaster.intersectObjects(this.scene.children);
+		const newRotation = new THREE.Vector3(
+			this.mouse.y * 0.1,
+			this.mouse.x * 0.1,
+			Math.sin(this.mouse.x * this.mouse.y)
+		);
 
-		for (let i = 0; i < intersects.length; i++) {
-			const intersect = intersects[i];
+		gsap.to(this.camera.position, {
+			duration: 0.5,
+			z: newPosition.z,
+			y: newPosition.y,
+			x: newPosition.x,
+			ease: 'power0'
+		});
 
-			if (!this.animatedContinue) {
-				this.animatedContinue = true;
-
-				if (intersect.object instanceof THREE.Mesh) {
-					gsap.to(intersect.object.scale, {
-						x: Math.random() * 5,
-						y: Math.random() * 5,
-						z: Math.random() * 5,
-						duration: 0.5,
-						ease: 'power0.inOut',
-						onComplete: () => {
-							this.animatedContinue = false;
-						}
-					});
-				}
-			}
-		}
+		gsap.to(this.camera.rotation, {
+			duration: 1.5,
+			z: newRotation.z,
+			y: newRotation.y,
+			x: newRotation.x,
+			ease: 'power2'
+		});
 	}
 
 	public addShadersMaterials(particles: number, texture: string) {
 		const shaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
-				pointTexture: { value: new THREE.TextureLoader().load(texture) }
+				pointTexture: { value: this.textureLoader.load(texture) }
 			},
 			vertexShader,
 			fragmentShader,
@@ -149,48 +211,9 @@ class MainScene {
 		this.scene.add(this.particleSystem);
 	}
 
-	public addTriangles(count: number) {
-		this.triangles = [];
-		const geometry = new THREE.BufferGeometry();
-		const vertices = new Float32Array(count * 3);
-
-		for (let i = 0; i < count * 3; i++) {
-			vertices[i] = Math.random() * 2 - 1;
-		}
-
-		geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-
-		const material = new THREE.MeshBasicMaterial({
-			color: new THREE.Color('rgb(55, 2, 60)'),
-			side: THREE.DoubleSide,
-			wireframe: true
-		});
-
-		for (let i = 0; i < count; i++) {
-			const triangle = new THREE.Mesh(geometry, material);
-			triangle.position.x = Math.random() * 4;
-			triangle.position.y = Math.random() * 4;
-			triangle.position.z = Math.random() * 4;
-			triangle.rotation.x = Math.random() * 2 * Math.PI;
-			triangle.rotation.y = Math.random() * 2 * Math.PI;
-			triangle.rotation.z = Math.random() * 2 * Math.PI;
-			// triangle.scale.setScalar(Math.random() + 0.5);
-			this.triangles.push(triangle);
-			this.scene.add(triangle);
-		}
-	}
-
 	public animate() {
 		requestAnimationFrame(() => this.animate());
 		this.renderer.render(this.scene, this.camera);
-
-		if (this.triangles) {
-			for (let i = 0; i < this.triangles.length; i++) {
-				const triangle = this.triangles[i];
-				triangle.rotation.x += 0.01;
-				triangle.rotation.y += 0.01;
-			}
-		}
 
 		if (this.particleSystem) {
 			const time = Date.now() * 0.002;
@@ -227,14 +250,9 @@ class MainScene {
 		return this.renderer;
 	}
 
-	public setTrianglesCount(count: number) {
-		// clear canvas
-		this.triangles.forEach((triangle) => {
-			this.scene.remove(triangle);
-		});
-
-		// add new triangles
-		this.addTriangles(count);
+	public dispose() {
+		this.scene.clear();
+		this.renderer.dispose();
 	}
 }
 
