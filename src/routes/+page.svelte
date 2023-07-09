@@ -38,23 +38,9 @@
 				}
 			});
 
-			gsap.to(cone.scale, {
-				duration: 0.1,
-				x: Math.random() * 10,
-				y: Math.random() * 10,
-				z: Math.random() * 10,
-				ease: 'power3.inOut',
-				scrollTrigger: {
-					trigger: sectionElements[1],
-					start: 'top top',
-					end: 'bottom bottom',
-					scrub: true
-				}
-			});
-
 			const tl = gsap.timeline({
 				scrollTrigger: {
-					trigger: sectionElements[2],
+					trigger: sectionElements[1],
 					start: 'top top',
 					end: 'bottom bottom',
 					scrub: true
@@ -97,7 +83,7 @@
 
 					ease: 'power3.inOut'
 				},
-				'>10%'
+				'='
 			);
 
 			tl.to(
@@ -109,7 +95,7 @@
 					normalScale: { x: 0, y: 0 },
 					ease: 'power3.inOut'
 				},
-				'>90%'
+				'='
 			);
 
 			gsap.to(cone.scale, {
@@ -119,7 +105,7 @@
 				z: 10,
 				ease: 'power3.inOut',
 				scrollTrigger: {
-					trigger: sectionElements[3],
+					trigger: sectionElements[2],
 					start: 'top top',
 					end: 'bottom bottom',
 					scrub: true
@@ -182,7 +168,6 @@
 
 <section bind:this={sectionElements[1]} />
 <section bind:this={sectionElements[2]} />
-<section bind:this={sectionElements[3]} />
 
 <style>
 	:root {
@@ -225,7 +210,7 @@
 		}
 	}
 	section {
-		height: 200vh;
+		height: 150vh;
 		overflow-y: scroll;
 	}
 	canvas {

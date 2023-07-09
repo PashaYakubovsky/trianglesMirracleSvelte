@@ -132,6 +132,7 @@ class MainScene {
 				getRandomBetween(-100, 100),
 				getRandomBetween(-100, 100)
 			);
+			cone.scale.set(getRandomBetween(1, 5), getRandomBetween(1, 5), getRandomBetween(1, 5));
 			this.conesMesh.push(cone);
 			this.scene.add(cone);
 		}
