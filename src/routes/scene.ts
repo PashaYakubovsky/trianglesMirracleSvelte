@@ -48,6 +48,7 @@ class MainScene {
 	private particleSystem: THREE.Points | null = null;
 	private textureLoader = new THREE.TextureLoader();
 	private conesMesh: THREE.Mesh[] = [];
+	private lights: THREE.Light[] = [];
 
 	constructor(el: HTMLCanvasElement) {
 		this.scene = new THREE.Scene();
@@ -83,22 +84,27 @@ class MainScene {
 		const ambientLight = new THREE.AmbientLight(0x404040);
 		ambientLight.intensity = 0.2;
 
-		const directionalLight = new THREE.DirectionalLight(0xffffff);
-		directionalLight.position.set(0, 1, 1).normalize();
-		directionalLight.intensity = 0.2;
-
 		const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
 		pointLight.position.set(0, 0, 0);
 		pointLight.intensity = 0.2;
-		this.scene.add(pointLight, directionalLight, ambientLight);
+		this.scene.add(pointLight, ambientLight);
+		this.lights.push(pointLight, ambientLight);
 	}
 
 	public addCones(textureSrc: string, numberOfCones: number) {
-		if (this.conesMesh.length > 0) {
-			this.conesMesh.forEach((cone) => {
+		if (this.conesMesh.length > numberOfCones) {
+			const deletedCones = this.conesMesh.slice(numberOfCones);
+
+			deletedCones.forEach((cone) => {
+				cone.geometry.dispose();
 				this.scene.remove(cone);
 			});
-			this.conesMesh = [];
+
+			this.conesMesh = this.conesMesh.slice(0, numberOfCones);
+
+			return this.conesMesh;
+		} else if (this.conesMesh.length - 1 < numberOfCones) {
+			numberOfCones = numberOfCones - this.conesMesh.length;
 		}
 
 		const geometry = new THREE.ConeGeometry(1, 1, 3);
@@ -248,6 +254,10 @@ class MainScene {
 
 	public getRenderer() {
 		return this.renderer;
+	}
+
+	public getLights() {
+		return this.lights;
 	}
 
 	public dispose() {
