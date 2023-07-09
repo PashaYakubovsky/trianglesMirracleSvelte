@@ -3,7 +3,7 @@
 	import MainScene from './scene';
 	import sparkTexture from '$lib/textures/spark1.png';
 	import matcapTexure from '$lib/textures/10.png';
-	import gsap from 'gsap';
+	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 	import type { MeshPhysicalMaterial } from 'three';
 
@@ -11,11 +11,10 @@
 
 	let canvasElement: HTMLCanvasElement;
 	let sectionElements: HTMLElement[] = [];
-	let countTriangles: number | null = 1;
+	let countTriangles: number | null = 200;
 	let scene: MainScene | null = null;
 	let cones3d: THREE.Mesh[] = [];
-	let camera: THREE.PerspectiveCamera | null = null;
-	let max = 400,
+	let max = 1000,
 		min = 0;
 
 	$: if (countTriangles && countTriangles > 0 && scene) {
@@ -53,12 +52,7 @@
 				}
 			});
 
-			gsap.to(cone.position, {
-				duration: 0.1,
-				x: Math.random() * 10,
-				y: Math.random() * 10,
-				z: Math.random() * 10,
-				ease: 'power3.inOut',
+			const tl = gsap.timeline({
 				scrollTrigger: {
 					trigger: sectionElements[2],
 					start: 'top top',
@@ -66,6 +60,31 @@
 					scrub: true
 				}
 			});
+
+			tl.to(
+				cone.rotation,
+				{
+					x: 0,
+					y: 0,
+					z: 0,
+					duration: 1,
+					ease: 'power3.inOut'
+				},
+				'='
+			);
+
+			tl.to(
+				cone.position,
+				{
+					duration: 1,
+					x: Math.random() * 10,
+					y: Math.random() * 10,
+					z: Math.random() * 10,
+					ease: 'power3.inOut'
+				},
+				'='
+			);
+
 			const material = cone.material as MeshPhysicalMaterial;
 			gsap.fromTo(
 				material,

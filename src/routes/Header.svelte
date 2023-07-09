@@ -20,9 +20,10 @@
 
 <style>
 	header {
-		display: flex;
+		position: fixed;
+		width: 100vw;
+		top: 0;
 		justify-content: center;
-		position: relative;
 		z-index: 1;
 	}
 
